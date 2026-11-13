@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY Seive2.Shared/Seive2.Shared.csproj Seive2.Shared/
+COPY Seive2.Worker/Seive2.Worker.csproj Seive2.Worker/
+RUN dotnet restore Seive2.Worker/Seive2.Worker.csproj
+COPY Seive2.Shared/ Seive2.Shared/
+COPY Seive2.Worker/ Seive2.Worker/
+RUN dotnet publish Seive2.Worker/Seive2.Worker.csproj --configuration Release --no-restore --output /app/publish
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish/ ./
+USER $APP_UID
+ENTRYPOINT ["dotnet", "Seive2.Worker.dll"]

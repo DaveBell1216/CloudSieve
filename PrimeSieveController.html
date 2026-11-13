@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Sieve Controller</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .helper-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            color: #0c5460;
+        }
+        .result-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .result-detail {
+            margin: 5px 0;
+        }
+        .quick-tests {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .quick-test-btn {
+            padding: 8px;
+            font-size: 14px;
+            width: 100%;
+        }
+        .status-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 Prime Sieve Controller</h1>
+        <p class="subtitle">Find prime numbers using distributed computing</p>
+
+        <div class="form-group">
+            <label for="apiUrl">API Server Address:</label>
+            <input type="text" id="apiUrl" value="http://192.168.1.9:5150" placeholder="http://192.168.1.9:5150">
+            <div class="helper-text">Enter your API server URL</div>
+        </div>
+
+        <div class="form-group">
+            <label for="maxNumber">Max Number:</label>
+            <input type="number" id="maxNumber" value="1000000" min="2" placeholder="1000000">
+            <div class="helper-text">Find all primes up to this number (max: 4 × 10¹⁸)</div>
+        </div>
+
+        <div class="form-group">
+            <label for="segmentSize">Segment Size:</label>
+            <input type="number" id="segmentSize" value="100000" min="1000" max="100000000" placeholder="100000">
+            <div class="helper-text">Size of each work chunk (1,000 - 100,000,000)</div>
+        </div>
+
+        <h3>Quick Tests:</h3>
+        <div class="quick-tests">
+            <button class="quick-test-btn" onclick="setQuickTest(100000, 10000)">Small (100K)</button>
+            <button class="quick-test-btn" onclick="setQuickTest(1000000, 100000)">Medium (1M)</button>
+            <button class="quick-test-btn" onclick="setQuickTest(10000000, 1000000)">Large (10M)</button>
+            <button class="quick-test-btn" onclick="setQuickTest(100000000, 10000000)">Huge (100M)</button>
+        </div>
+
+        <button onclick="startJob()">🚀 Start Job</button>
+        <button class="btn-secondary" onclick="checkStatus()">📊 Check Status</button>
+        <button class="btn-info" onclick="checkHealth()">❤️ Health Check</button>
+        <button class="btn-info" onclick="getLargestPrime()">🏆 Largest Prime</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function setQuickTest(max, segment) {
+            document.getElementById('maxNumber').value = max;
+            document.getElementById('segmentSize').value = segment;
+        }
+
+        async function startJob() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const maxNumber = parseInt(document.getElementById('maxNumber').value);
+            const segmentSize = parseInt(document.getElementById('segmentSize').value);
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${apiUrl}/api/job/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        maxNumber: maxNumber,
+                        segmentSize: segmentSize
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">✅ Job Started Successfully!</div>
+                        <div class="result-detail"><strong>Job ID:</strong> ${data.jobId}</div>
+                        <div class="result-detail"><strong>Max Number:</strong> ${maxNumber.toLocaleString()}</div>
+                        <div class="result-detail"><strong>Segment Size:</strong> ${segmentSize.toLocaleString()}</div>
+                        <div class="result-detail"><strong>Total Segments:</strong> ${data.totalSegments}</div>
+                        <div class="result-detail"><strong>Started:</strong> ${new Date(data.startedAt).toLocaleString()}</div>
+                        <div class="helper-text" style="margin-top: 10px;">Now start workers to process the job!</div>
+                    `;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">❌ Error</div>
+                        <div class="result-detail">${JSON.stringify(data)}</div>
+                    `;
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `
+                    <div class="result-title">❌ Connection Error</div>
+                    <div class="result-detail">${error.message}</div>
+                    <div class="helper-text">Make sure the API server is running and accessible.</div>
+                `;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        async function checkStatus() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${apiUrl}/api/job/status`);
+
+                if (response.status === 404) {
+                    resultDiv.className = 'info';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">ℹ️ No Job Running</div>
+                        <div class="result-detail">No job is currently running or completed.</div>
+                    `;
+                    resultDiv.style.display = 'block';
+                    return;
+                }
+
+                const data = await response.json();
+
+                const statusText = ['Not Started', 'Running', 'Completed', 'Failed'][data.status];
+                const progressPercent = data.progressPercentage || 0;
+
+                resultDiv.className = data.status === 2 ? 'success' : 'info';
+                resultDiv.innerHTML = `
+                    <div class="result-title">📊 Job Status: ${statusText}</div>
+                    <div class="result-detail"><strong>Job ID:</strong> ${data.jobId}</div>
+                    <div class="result-detail"><strong>Max Number:</strong> ${data.maxNumber.toLocaleString()}</div>
+                    <div class="result-detail"><strong>Total Primes Found:</strong> ${data.totalPrimesFound.toLocaleString()}</div>
+                    <div class="result-detail"><strong>Progress:</strong> ${data.completedSegments} / ${data.totalSegments} segments</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progressPercent}%">${progressPercent.toFixed(1)}%</div>
+                    </div>
+                    <div class="result-detail"><strong>Pending:</strong> ${data.pendingSegments} | <strong>Assigned:</strong> ${data.assignedSegments}</div>
+                    <div class="result-detail"><strong>Elapsed Time:</strong> ${data.elapsedTime || 'N/A'}</div>
+                    ${data.completedAt ? `<div class="result-detail"><strong>Completed:</strong> ${new Date(data.completedAt).toLocaleString()}</div>` : ''}
+                `;
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `
+                    <div class="result-title">❌ Connection Error</div>
+                    <div class="result-detail">${error.message}</div>
+                `;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        async function checkHealth() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${apiUrl}/api/job/health`);
+                const data = await response.json();
+
+                if (response.ok && data.status === 'healthy') {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">✅ API is Healthy</div>
+                        <div class="result-detail"><strong>Server:</strong> ${apiUrl}</div>
+                        <div class="result-detail"><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</div>
+                    `;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">❌ API Unhealthy</div>
+                        <div class="result-detail">${JSON.stringify(data)}</div>
+                    `;
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `
+                    <div class="result-title">❌ Cannot Reach API</div>
+                    <div class="result-detail">${error.message}</div>
+                    <div class="helper-text">Check that the API is running at: ${apiUrl}</div>
+                `;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        async function getLargestPrime() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${apiUrl}/api/work/largest-prime`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">🏆 Largest Prime Found</div>
+                        <div class="result-detail"><strong>Value:</strong> ${data.largestPrime.toLocaleString()}</div>
+                        ${data.largestPrime === 0 ? '<div class="helper-text">No primes found yet - workers haven\'t completed any segments</div>' : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `
+                        <div class="result-title">❌ Error</div>
+                        <div class="result-detail">${JSON.stringify(data)}</div>
+                    `;
+                }
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `
+                    <div class="result-title">❌ Connection Error</div>
+                    <div class="result-detail">${error.message}</div>
+                `;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        // Auto-check health on load
+        window.addEventListener('load', () => {
+            setTimeout(checkHealth, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Build and publish output
+**/bin/
+**/obj/
+publish/
+
+# Visual Studio and user-specific files
+.vs/
+*.user
+*.suo
+
+# Local session artifacts
+session-state/
+
+# Legacy files containing local database credentials; keep out of Git
+DATABASE_TROUBLESHOOTING.md
+diagnose-database.ps1
+RESUME_FEATURE_SUMMARY.md
+RESUME_FROM_DATABASE.md
+SQL_IMPLEMENTATION_SUMMARY.md
+SQL_SERVER_TRACKING.md

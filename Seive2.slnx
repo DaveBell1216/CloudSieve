@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Seive2.OneShot.Checks/Seive2.OneShot.Checks.csproj" />
+  <Project Path="Seive2.OneShot/Seive2.OneShot.csproj" />
+  <Project Path="Seive2.Shared/Seive2.Shared.csproj" />
+  <Project Path="Seive2.Worker/Seive2.Worker.csproj" />
+  <Project Path="Seive2/Seive2.Api.csproj" />
+</Solution>

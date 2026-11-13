@@ -1,0 +1,48 @@
+@Seive2_HostAddress = http://192.168.1.9:5150
+
+### Health Check
+GET {{Seive2_HostAddress}}/api/job/health
+Accept: application/json
+
+###
+
+### Start a new sieve job (find primes up to 1 million)
+POST {{Seive2_HostAddress}}/api/job/start
+Content-Type: application/json
+
+{
+  "maxNumber": 1000000,
+  "segmentSize": 100000
+}
+
+###
+
+### Get current job status
+GET {{Seive2_HostAddress}}/api/job/status
+Accept: application/json
+
+###
+
+### Worker requests next work segment
+POST {{Seive2_HostAddress}}/api/work/next
+Content-Type: application/json
+
+{
+  "workerId": "test-worker-1",
+  "workerName": "Test Worker"
+}
+
+###
+
+### Submit work result (example - use actual SegmentId from work response)
+POST {{Seive2_HostAddress}}/api/work/complete
+Content-Type: application/json
+
+{
+  "segmentId": "00000000-0000-0000-0000-000000000000",
+  "workerId": "test-worker-1",
+  "primesFound": 12345,
+  "success": true
+}
+
+###
